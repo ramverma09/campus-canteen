@@ -1,108 +1,125 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
+import API from "../api";
 
 function Register() {
 
-  const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    password: ""
-  });
+    const navigate = useNavigate();
 
-  const handleChange = (e) => {
-
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value
+    const [formData, setFormData] = useState({
+        name: "",
+        email: "",
+        password: ""
     });
 
-  };
+    const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e) => {
+    const handleChange = (e) => {
+        setFormData({
+            ...formData,
+            [e.target.name]: e.target.value
+        });
+    };
 
-    e.preventDefault();
+    const handleSubmit = async (e) => {
+        e.preventDefault();
 
-    console.log("Registration Data:", formData);
+        try {
+            setLoading(true);
 
-    alert("Registration form submitted!");
+            const response = await API.post(
+                "/auth/register",
+                formData
+            );
 
-  };
+            alert(response.data.message);
 
-  return (
-    <>
-      <Navbar />
+            navigate("/login");
 
-      <div className="form-container">
+        } catch (error) {
 
-        <h2>Create Account</h2>
+            alert(
+                error.response?.data?.message ||
+                "Registration failed"
+            );
 
-        <form onSubmit={handleSubmit}>
+        } finally {
+            setLoading(false);
+        }
+    };
 
-          <div className="form-group">
+    return (
+        <>
+            <Navbar />
 
-            <label>Name</label>
+            <div className="form-container">
 
-            <input
-              type="text"
-              name="name"
-              value={formData.name}
-              onChange={handleChange}
-              placeholder="Enter your name"
-              required
-            />
+                <h2>Create Account</h2>
 
-          </div>
+                <form onSubmit={handleSubmit}>
 
-          <div className="form-group">
+                    <div className="form-group">
+                        <label>Name</label>
 
-            <label>Email</label>
+                        <input
+                            type="text"
+                            name="name"
+                            value={formData.name}
+                            onChange={handleChange}
+                            placeholder="Enter your name"
+                            required
+                        />
+                    </div>
 
-            <input
-              type="email"
-              name="email"
-              value={formData.email}
-              onChange={handleChange}
-              placeholder="Enter your email"
-              required
-            />
+                    <div className="form-group">
+                        <label>Email</label>
 
-          </div>
+                        <input
+                            type="email"
+                            name="email"
+                            value={formData.email}
+                            onChange={handleChange}
+                            placeholder="Enter your email"
+                            required
+                        />
+                    </div>
 
-          <div className="form-group">
+                    <div className="form-group">
+                        <label>Password</label>
 
-            <label>Password</label>
+                        <input
+                            type="password"
+                            name="password"
+                            value={formData.password}
+                            onChange={handleChange}
+                            placeholder="Enter password"
+                            required
+                        />
+                    </div>
 
-            <input
-              type="password"
-              name="password"
-              value={formData.password}
-              onChange={handleChange}
-              placeholder="Create password"
-              required
-            />
+                    <button
+                        type="submit"
+                        className="btn"
+                        disabled={loading}
+                    >
+                        {loading
+                            ? "Registering..."
+                            : "Register"}
+                    </button>
 
-          </div>
+                </form>
 
-          <button className="btn" type="submit">
-            Register
-          </button>
+                <div className="form-footer">
+                    Already have an account?{" "}
+                    <Link to="/login">
+                        Login
+                    </Link>
+                </div>
 
-        </form>
-
-        <div className="form-footer">
-
-          Already have an account?
-
-          <Link to="/login">
-            Login
-          </Link>
-
-        </div>
-
-      </div>
-    </>
-  );
+            </div>
+        </>
+    );
 }
 
 export default Register;

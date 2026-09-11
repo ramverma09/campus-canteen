@@ -1,90 +1,129 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
+import API from "../api";
 
 function Login() {
 
-  const navigate = useNavigate();
+    const navigate = useNavigate();
 
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+    const [email, setEmail] = useState("");
+    const [password, setPassword] = useState("");
 
-  const handleSubmit = (e) => {
+    const [loading, setLoading] = useState(false);
 
-    e.preventDefault();
+    const handleSubmit = async (e) => {
 
-    console.log({
-      email,
-      password
-    });
+        e.preventDefault();
 
-    alert("Login successful!");
+        try {
 
-    navigate("/menu");
+            setLoading(true);
 
-  };
+            const response = await API.post(
+                "/auth/login",
+                {
+                    email,
+                    password
+                }
+            );
 
-  return (
-    <>
-      <Navbar />
+            const { token, user } =
+                response.data;
 
-      <div className="form-container">
+            localStorage.setItem(
+                "token",
+                token
+            );
 
-        <h2>Student Login</h2>
+            localStorage.setItem(
+                "user",
+                JSON.stringify(user)
+            );
 
-        <form onSubmit={handleSubmit}>
+            alert("Login successful!");
 
-          <div className="form-group">
+            navigate("/menu");
 
-            <label>Email</label>
+        } catch (error) {
 
-            <input
-              type="email"
-              value={email}
-              onChange={(e) =>
-                setEmail(e.target.value)
-              }
-              placeholder="Enter your email"
-              required
-            />
+            alert(
+                error.response?.data?.message ||
+                "Invalid email or password"
+            );
 
-          </div>
+        } finally {
+            setLoading(false);
+        }
+    };
 
-          <div className="form-group">
+    return (
+        <>
+            <Navbar />
 
-            <label>Password</label>
+            <div className="form-container">
 
-            <input
-              type="password"
-              value={password}
-              onChange={(e) =>
-                setPassword(e.target.value)
-              }
-              placeholder="Enter password"
-              required
-            />
+                <h2>Student Login</h2>
 
-          </div>
+                <form onSubmit={handleSubmit}>
 
-          <button className="btn" type="submit">
-            Login
-          </button>
+                    <div className="form-group">
 
-        </form>
+                        <label>Email</label>
 
-        <div className="form-footer">
+                        <input
+                            type="email"
+                            value={email}
+                            onChange={(e) =>
+                                setEmail(e.target.value)
+                            }
+                            placeholder="Enter email"
+                            required
+                        />
 
-          Don't have an account?
+                    </div>
 
-          <Link to="/register">
-            Register
-          </Link>
+                    <div className="form-group">
 
-        </div>
+                        <label>Password</label>
 
-      </div>
-    </>
-  );
+                        <input
+                            type="password"
+                            value={password}
+                            onChange={(e) =>
+                                setPassword(e.target.value)
+                            }
+                            placeholder="Enter password"
+                            required
+                        />
+
+                    </div>
+
+                    <button
+                        type="submit"
+                        className="btn"
+                        disabled={loading}
+                    >
+                        {loading
+                            ? "Logging in..."
+                            : "Login"}
+                    </button>
+
+                </form>
+
+                <div className="form-footer">
+
+                    Don't have an account?{" "}
+
+                    <Link to="/register">
+                        Register
+                    </Link>
+
+                </div>
+
+            </div>
+        </>
+    );
 }
 
 export default Login;
