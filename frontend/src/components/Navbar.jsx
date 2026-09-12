@@ -1,6 +1,15 @@
 import { Link } from "react-router-dom";
 
 function Navbar() {
+
+  const user = JSON.parse(localStorage.getItem("user"));
+
+  const logout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    window.location.href = "/login";
+  };
+
   return (
     <nav className="navbar">
 
@@ -26,9 +35,30 @@ function Navbar() {
           My Orders
         </Link>
 
-        <Link to="/login">
-          Login
-        </Link>
+        {user?.role === "admin" && (
+          <>
+            <Link to="/admin">
+              Admin Dashboard
+            </Link>
+
+            <Link to="/admin/orders">
+              Admin Orders
+            </Link>
+          </>
+        )}
+
+        {user ? (
+          <button
+            onClick={logout}
+            className="nav-logout"
+          >
+            Logout
+          </button>
+        ) : (
+          <Link to="/login">
+            Login
+          </Link>
+        )}
 
       </div>
 

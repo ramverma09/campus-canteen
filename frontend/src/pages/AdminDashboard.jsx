@@ -1,136 +1,140 @@
+import { useEffect, useState } from "react";
 import Navbar from "../components/Navbar";
+import API from "../api";
 
 function AdminDashboard() {
 
-  const order =
-    JSON.parse(localStorage.getItem("latestOrder"));
+    const [orders, setOrders] = useState([]);
+    const [loading, setLoading] = useState(true);
 
-  return (
-    <>
-      <Navbar />
+    const fetchOrders = async () => {
+        try {
+            const response = await API.get("/orders/admin/all");
+            setOrders(response.data);
+        } catch (error) {
+            console.error(error.response?.data || error);
+        } finally {
+            setLoading(false);
+        }
+    };
 
-      <main className="container">
+    useEffect(() => {
+        fetchOrders();
 
-        <h1 className="page-title">
-          Canteen Dashboard
-        </h1>
+        const interval = setInterval(fetchOrders, 5000);
 
-        {!order ? (
+        return () => clearInterval(interval);
+    }, []);
 
-          <div className="empty">
-            <h2>No incoming orders</h2>
-          </div>
+    const waiting = orders.filter(
+        order => order.status === "WAITING"
+    ).length;
 
-        ) : (
+    const preparing = orders.filter(
+        order => order.status === "PREPARING"
+    ).length;
 
-          <div className="order-card">
+    const ready = orders.filter(
+        order => order.status === "READY"
+    ).length;
 
-            <h2>
-              Order #{order.id}
-            </h2>
+    const completed = orders.filter(
+        order => order.status === "COMPLETED"
+    ).length;
 
-            <br />
+    if (loading) {
+        return (
+            <>
+                <Navbar />
+                <main className="container">
+                    <h1 className="page-title">
+                        Admin Dashboard
+                    </h1>
+                    <p>Loading dashboard...</p>
+                </main>
+            </>
+        );
+    }
 
-            <p>
-              Queue Number:
-              <strong>
-                {" "}{order.queueNumber}
-              </strong>
-            </p>
+    return (
+        <>
+            <Navbar />
 
-            <br />
+            <main className="container">
 
-            <h3>Items</h3>
+                <h1 className="page-title">
+                    Admin Dashboard
+                </h1>
 
-            <br />
+                <div className="dashboard-grid">
 
-            {order.items.map((item, index) => (
+                    <div className="dashboard-card">
+                        <h2>{orders.length}</h2>
+                        <p>Total Orders</p>
+                    </div>
 
-              <p key={index}>
-                {item.name} — ₹{item.price}
-              </p>
+                    <div className="dashboard-card">
+                        <h2>{waiting}</h2>
+                        <p>Waiting</p>
+                    </div>
 
-            ))}
+                    <div className="dashboard-card">
+                        <h2>{preparing}</h2>
+                        <p>Preparing</p>
+                    </div>
 
-            <br />
+                    <div className="dashboard-card">
+                        <h2>{ready}</h2>
+                        <p>Ready</p>
+                    </div>
 
-            <p>
-              Total:
-              <strong>
-                {" "}₹{order.totalAmount}
-              </strong>
-            </p>
+                    <div className="dashboard-card">
+                        <h2>{completed}</h2>
+                        <p>Completed</p>
+                    </div>
 
-            <br />
+                </div>
 
-            <p>
-              Current Status:
-              <strong>
-                {" "}{order.status}
-              </strong>
-            </p>
+                <br />
 
-            <br />
+                <h2>Recent Orders</h2>
 
-            <div className="admin-actions">
+                <div className="cart-items">
 
-              <button
-                className="btn"
-                onClick={() => {
-                  order.status = "PREPARING";
+                    {orders.slice(0, 5).map(order => (
 
-                  localStorage.setItem(
-                    "latestOrder",
-                    JSON.stringify(order)
-                  );
+                        <div
+                            className="cart-item"
+                            key={order._id}
+                        >
 
-                  window.location.reload();
-                }}
-              >
-                Preparing
-              </button>
+                            <div>
+                                <h3>
+                                    Queue #{order.queueNumber}
+                                </h3>
 
-              <button
-                className="btn"
-                onClick={() => {
-                  order.status = "READY";
+                                <p>
+                                    {order.userId?.name || "Unknown Student"}
+                                </p>
 
-                  localStorage.setItem(
-                    "latestOrder",
-                    JSON.stringify(order)
-                  );
+                                <p>
+                                    ₹{order.totalAmount}
+                                </p>
+                            </div>
 
-                  window.location.reload();
-                }}
-              >
-                Ready
-              </button>
+                            <strong>
+                                {order.status}
+                            </strong>
 
-              <button
-                className="btn btn-secondary"
-                onClick={() => {
-                  order.status = "COMPLETED";
+                        </div>
 
-                  localStorage.setItem(
-                    "latestOrder",
-                    JSON.stringify(order)
-                  );
+                    ))}
 
-                  window.location.reload();
-                }}
-              >
-                Completed
-              </button>
+                </div>
 
-            </div>
-
-          </div>
-
-        )}
-
-      </main>
-    </>
-  );
+            </main>
+        </>
+    );
 }
 
 export default AdminDashboard;

@@ -9,6 +9,7 @@ import Orders from "./pages/Orders";
 import OrderDetails from "./pages/OrderDetails";
 import AdminLogin from "./pages/AdminLogin";
 import AdminDashboard from "./pages/AdminDashboard";
+import AdminOrders from "./pages/AdminOrders";
 
 function App() {
   return (
@@ -31,6 +32,10 @@ function App() {
           path="/order/:id"
           element={<OrderDetails />}
         />
+        <Route
+    path="/admin"
+    element={<AdminDashboard />}
+/>
 
         <Route
           path="/admin/login"
@@ -40,6 +45,10 @@ function App() {
         <Route
           path="/admin/dashboard"
           element={<AdminDashboard />}
+        />
+        <Route
+         path="/admin/orders"
+         element={<AdminOrders />}
         />
 
       </Routes>

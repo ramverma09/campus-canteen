@@ -1,98 +1,177 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import API from "../api";
 
 function Orders() {
+    const [orders, setOrders] = useState([]);
+    const [loading, setLoading] = useState(true);
 
-  const [orders, setOrders] = useState([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
     const fetchOrders = async () => {
-      try {
-        const response = await API.get("/orders");
-        setOrders(response.data || []);
-      } catch (error) {
-        console.error("Failed to fetch orders:", error);
-      } finally {
-        setLoading(false);
-      }
+        try {
+            const response = await API.get("/orders");
+            setOrders(response.data);
+        } catch (error) {
+            console.error(error.response?.data || error);
+        } finally {
+            setLoading(false);
+        }
     };
 
-    fetchOrders();
-  }, []);
+    useEffect(() => {
+        fetchOrders();
 
-  return (
-    <>
-      <Navbar />
+        const interval = setInterval(fetchOrders, 5000);
 
-      <main className="container">
+        return () => clearInterval(interval);
+    }, []);
 
-        <h1 className="page-title">
-          My Orders
-        </h1>
+    const statusSteps = [
+        "WAITING",
+        "PREPARING",
+        "READY",
+        "COMPLETED"
+    ];
 
-        {loading ? (
-          <p>Loading orders...</p>
-        ) : orders.length === 0 ? (
-          <div className="empty">
+    const getStep = (status) => {
+        return statusSteps.indexOf(status);
+    };
 
-            <h2>
-              No orders found
-            </h2>
+    if (loading) {
+        return (
+            <>
+                <Navbar />
+                <main className="container">
+                    <h1 className="page-title">My Orders</h1>
+                    <p>Loading orders...</p>
+                </main>
+            </>
+        );
+    }
 
-            <br />
+    return (
+        <>
+            <Navbar />
 
-            <Link
-              to="/menu"
-              className="btn"
-            >
-              Order Food
-            </Link>
+            <main className="container">
 
-          </div>
-        ) : (
-          orders.map((order) => (
-            <div className="order-card" key={order._id}>
+                <h1 className="page-title">
+                    My Orders
+                </h1>
 
-              <h2>
-                Order #{order._id}
-              </h2>
+                {orders.length === 0 ? (
+                    <div className="empty">
+                        <h2>No orders found</h2>
+                    </div>
+                ) : (
+                    <div className="orders-list">
 
-              <div className="queue-number">
-                {order.queueNumber}
-              </div>
+                        {orders.map((order) => {
 
-              <p>
-                Queue Number
-              </p>
+                            const currentStep =
+                                getStep(order.status);
 
-              <br />
+                            return (
+                                <div
+                                    className="order-card"
+                                    key={order._id}
+                                >
 
-              <span
-                className={`status status-${order.status.toLowerCase()}`}
-              >
-                {order.status}
-              </span>
+                                    <div className="order-header">
+                                        <div>
+                                            <h2>
+                                                Queue #{order.queueNumber}
+                                            </h2>
 
-              <br />
-              <br />
+                                            <p>
+                                                Order ID:{" "}
+                                                {order._id}
+                                            </p>
+                                        </div>
 
-              <Link
-                to={`/order/${order._id}`}
-                className="btn"
-              >
-                View Details
-              </Link>
+                                        <strong>
+                                            {order.status}
+                                        </strong>
+                                    </div>
 
-            </div>
-          ))
-        )}
+                                    <div className="order-items">
+                                        {order.items.map(
+                                            (item, index) => (
+                                                <div
+                                                    className="order-item"
+                                                    key={index}
+                                                >
+                                                    <span>
+                                                        {item.name} ×{" "}
+                                                        {item.quantity}
+                                                    </span>
 
-      </main>
-    </>
-  );
+                                                    <span>
+                                                        ₹
+                                                        {item.price *
+                                                            item.quantity}
+                                                    </span>
+                                                </div>
+                                            )
+                                        )}
+                                    </div>
+
+                                    <h3>
+                                        Total: ₹{order.totalAmount}
+                                    </h3>
+
+                                    <div className="order-progress">
+
+                                        {statusSteps.map(
+                                            (step, index) => (
+
+                                                <div
+                                                    className={
+                                                        index <= currentStep
+                                                            ? "progress-step active"
+                                                            : "progress-step"
+                                                    }
+                                                    key={step}
+                                                >
+
+                                                    <div className="progress-circle">
+                                                        {index + 1}
+                                                    </div>
+
+                                                    <span>
+                                                        {step}
+                                                    </span>
+
+                                                </div>
+
+                                            )
+                                        )}
+
+                                    </div>
+
+                                    {order.status === "READY" && (
+                                        <div className="ready-message">
+                                            🎉 Your order is ready!
+                                            Please collect it from
+                                            the canteen.
+                                        </div>
+                                    )}
+
+                                    {order.status === "COMPLETED" && (
+                                        <div className="completed-message">
+                                            ✅ Order completed
+                                        </div>
+                                    )}
+
+                                </div>
+                            );
+                        })}
+
+                    </div>
+                )}
+
+            </main>
+        </>
+    );
 }
 
 export default Orders;

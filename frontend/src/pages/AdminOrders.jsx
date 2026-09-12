@@ -9,12 +9,16 @@ function AdminOrders() {
     const fetchOrders = async () => {
         try {
             const response = await API.get("/orders/admin/all");
+
+            console.log("ADMIN ORDERS:", response.data);
+
             setOrders(response.data);
         } catch (error) {
             console.error(
-                "Failed to fetch orders:",
-                error.response?.data || error.message
+                "Admin orders error:",
+                error.response?.data || error
             );
+
             alert(
                 error.response?.data?.message ||
                 "Failed to fetch orders"
@@ -28,18 +32,18 @@ function AdminOrders() {
         fetchOrders();
     }, []);
 
-    const updateStatus = async (orderId, status) => {
+    const updateStatus = async (orderId, newStatus) => {
         try {
-            await API.put(`/orders/${orderId}/status`, {
-                status
-            });
+            await API.put(
+                `/orders/${orderId}/status`,
+                { status: newStatus }
+            );
 
             await fetchOrders();
-
         } catch (error) {
             console.error(
-                "Status update failed:",
-                error.response?.data || error.message
+                "Status update error:",
+                error.response?.data || error
             );
 
             alert(
@@ -49,31 +53,18 @@ function AdminOrders() {
         }
     };
 
-    if (loading) {
-        return (
-            <>
-                <Navbar />
-                <main className="container">
-                    <h1 className="page-title">
-                        Admin Orders
-                    </h1>
-                    <p>Loading orders...</p>
-                </main>
-            </>
-        );
-    }
-
     return (
         <>
             <Navbar />
 
             <main className="container">
-
                 <h1 className="page-title">
                     Admin Orders
                 </h1>
 
-                {orders.length === 0 ? (
+                {loading ? (
+                    <p>Loading orders...</p>
+                ) : orders.length === 0 ? (
                     <div className="empty">
                         <h2>No orders found</h2>
                     </div>
@@ -81,17 +72,14 @@ function AdminOrders() {
                     <div className="cart-items">
 
                         {orders.map((order) => (
-
                             <div
                                 className="cart-item"
                                 key={order._id}
                             >
-
                                 <div>
-
-                                    <h3>
+                                    <h2>
                                         Queue #{order.queueNumber}
-                                    </h3>
+                                    </h2>
 
                                     <p>
                                         Student:{" "}
@@ -99,9 +87,23 @@ function AdminOrders() {
                                     </p>
 
                                     <p>
-                                        Total: ₹
-                                        {order.totalAmount}
+                                        Email:{" "}
+                                        {order.userId?.email || "Unknown"}
                                     </p>
+
+                                    <br />
+
+                                    {order.items.map((item, index) => (
+                                        <p key={index}>
+                                            {item.name} × {item.quantity}
+                                            {" = "}
+                                            ₹{item.price * item.quantity}
+                                        </p>
+                                    ))}
+
+                                    <h3>
+                                        Total: ₹{order.totalAmount}
+                                    </h3>
 
                                     <p>
                                         Status:{" "}
@@ -109,18 +111,6 @@ function AdminOrders() {
                                             {order.status}
                                         </strong>
                                     </p>
-
-                                    <div>
-                                        {order.items.map(
-                                            (item, index) => (
-                                                <p key={index}>
-                                                    {item.name} ×{" "}
-                                                    {item.quantity}
-                                                </p>
-                                            )
-                                        )}
-                                    </div>
-
                                 </div>
 
                                 <div>
@@ -169,19 +159,16 @@ function AdminOrders() {
 
                                     {order.status === "COMPLETED" && (
                                         <p>
-                                            ✅ Order Completed
+                                            ✅ Completed
                                         </p>
                                     )}
 
                                 </div>
-
                             </div>
-
                         ))}
 
                     </div>
                 )}
-
             </main>
         </>
     );
