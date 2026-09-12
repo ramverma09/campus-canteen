@@ -1,53 +1,77 @@
 function FoodCard({ item }) {
 
-  const addToCart = () => {
+    const itemId = item._id || item.id;
 
-    const existingCart =
-      JSON.parse(localStorage.getItem("cart")) || [];
+    const addToCart = () => {
 
-    existingCart.push(item);
+        const cart =
+            JSON.parse(
+                localStorage.getItem("cart")
+            ) || [];
 
-    localStorage.setItem(
-      "cart",
-      JSON.stringify(existingCart)
-    );
+        const existingItem = cart.find(
+            (cartItem) =>
+                (cartItem._id || cartItem.id) === itemId
+        );
 
-    alert(`${item.name} added to cart!`);
+        let updatedCart;
 
-  };
+        if (existingItem) {
 
-  return (
-    <div className="food-card">
+            updatedCart = cart.map((cartItem) => {
 
-      <div className="food-image">
-        {item.emoji}
-      </div>
+                const cartItemId = cartItem._id || cartItem.id;
 
-      <div className="food-content">
+                if (cartItemId === itemId) {
 
-        <h3>
-          {item.name}
-        </h3>
+                    return {
+                        ...cartItem,
+                        quantity:
+                            (cartItem.quantity || 1) + 1
+                    };
+                }
 
-        <p>
-          {item.description}
-        </p>
+                return cartItem;
+            });
 
-        <div className="price">
-          ₹{item.price}
+        } else {
+
+            updatedCart = [
+                ...cart,
+                {
+                    ...item,
+                    _id: itemId,
+                    quantity: 1
+                }
+            ];
+        }
+
+        localStorage.setItem(
+            "cart",
+            JSON.stringify(updatedCart)
+        );
+
+        alert(`${item.name} added to cart!`);
+    };
+
+    return (
+        <div className="food-card">
+
+            <h3>{item.name}</h3>
+
+            <p>{item.category}</p>
+
+            <h4>₹{item.price}</h4>
+
+            <button
+                className="btn"
+                onClick={addToCart}
+            >
+                Add to Cart
+            </button>
+
         </div>
-
-        <button
-          className="btn"
-          onClick={addToCart}
-        >
-          Add to Cart
-        </button>
-
-      </div>
-
-    </div>
-  );
+    );
 }
 
 export default FoodCard;

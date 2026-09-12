@@ -107,42 +107,6 @@ router.get("/", protect, async (req, res) => {
 
 
 // ==========================
-// GET SINGLE ORDER
-// ==========================
-
-router.get("/:id", protect, async (req, res) => {
-
-    try {
-
-        const order =
-            await Order.findById(req.params.id);
-
-        if (!order) {
-
-            return res.status(404).json({
-                message: "Order not found"
-            });
-
-        }
-
-        res.json(order);
-
-    } catch (error) {
-
-        res.status(500).json({
-
-            message: "Failed to fetch order",
-
-            error: error.message
-
-        });
-
-    }
-
-});
-
-
-// ==========================
 // ADMIN GET ALL ORDERS
 // ==========================
 
@@ -188,6 +152,41 @@ router.get(
 // ==========================
 // UPDATE ORDER STATUS
 // ==========================
+
+// ==========================
+// GET SINGLE ORDER
+// ==========================
+
+router.get("/:id", protect, async (req, res) => {
+
+    try {
+
+        const order =
+            await Order.findById(req.params.id);
+
+        if (!order) {
+
+            return res.status(404).json({
+                message: "Order not found"
+            });
+
+        }
+
+        res.json(order);
+
+    } catch (error) {
+
+        res.status(500).json({
+
+            message: "Failed to fetch order",
+
+            error: error.message
+
+        });
+
+    }
+
+});
 
 router.put(
     "/:id/status",
